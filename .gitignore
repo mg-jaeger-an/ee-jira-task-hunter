@@ -1,0 +1,26 @@
+# Other exploration work (not part of ee-jira-task-hunter)
+/RBR/
+/UUD/
+/MEP/
+/chemistry-recs-plan/
+/queues/
+reply.md
+
+# Generated run logs (CI uploads as artifacts)
+jira manager/logs/*.md
+
+# Secrets and local env
+.env
+.env.*
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+.idea/
+.claude/
