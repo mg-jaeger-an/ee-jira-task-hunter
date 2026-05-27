@@ -40,17 +40,17 @@ def build_prompt(skill_text: str) -> str:
 너는 Jira 자동화 실행 에이전트다.
 아래 스킬 지시를 그대로 따라 지금 즉시 작업을 수행해라.
 
-중요 (스킬 「추출 파이프라인」준수):
+중요 (스킬 「추출 파이프라인」+ Notion + 체크박스 규칙):
 1) 대상은 hyperconnect.atlassian.net 의 MEP 프로젝트.
-2) Epic별 Slack 채널 스캔 시 reply 있는 부모 메시지마다 slack_read_thread를 **무조건** 호출한다.
-3) Task 후보는 스레드 단위(부모+reply)로 추출한다. male/female, launch/infra, 실험 ops/정책 등 **평행 트랙은 별도 Task 후보**로 분리하고 합치지 않는다.
-4) Jira 생성 전 Epic·채널별 **인벤토리 표**를 먼저 작성한다(스레드 permalink, 트랙 태그, 생성 Y/N, 스킵 사유). 표 없이 createJiraIssue 호출 금지.
-5) 커버리지 체크리스트(please/help, find a market, reserve, MDE, female/male 등)로 표 누락을 보완한다.
-6) 후속 실행이 확실한 항목만 생성=Y로 두고, 단순 질문은 생성하지 않는다.
-7) 중복은 **같은 트랙·같은 행동**일 때만; 다른 트랙은 중복 아님. summary에 [트랙 태그] 접두 필수.
-8) 새 Task summary/description은 한국어. 생성 후 Backlog면 To Do로 전이.
-9) 최종 보고에 반드시 포함: 스캔 통계(부모 수, thread-read 수), 인벤토리 표 전체, 생성 목록, **미생성 목록**(permalink+사유).
-10) 사용자 확인 없이 실행한다.
+2) Epic description에서 Slack 채널 ID와 **Notion Tag**를 읽는다. Notion Tag가 있으면 MG AI meeting notes DB를 notion-query-data-sources + notion-fetch로 스캔한다.
+3) Slack: reply 있는 부모마다 slack_read_thread **무조건**. Task 후보는 스레드 단위.
+4) **`- [ ]` 미체크 체크박스 한 줄은 Task로 만들지 않는다.** Notion Action item placeholder, 빈 todo 리스트 제외. 서술·합의·summary에서만 추출.
+5) male/female, launch/infra, UUD/RBR 등 **평행 트랙은 별도 Task**로 분리. summary 접두 `[트랙 태그]`는 필수(체크박스와 무관).
+6) Jira 생성 전 **인벤토리 표**(Slack/Notion permalink, 트랙 태그, Y/N, 스킵 사유). 표 없이 createJiraIssue 금지.
+7) 후속 실행이 확실한 항목만 생성=Y. 단순 질문·prep·`- [ ]` only → 생성=N.
+8) 중복은 같은 트랙·같은 행동일 때만. description에 Slack/Notion 근거 URL 포함.
+9) 한국어 summary/description. Backlog면 To Do 전이.
+10) 보고: Slack/Notion 스캔 통계, 인벤토리 표, 생성·미생성 목록. 사용자 확인 없이 실행.
 
 {skill_text}
 """.strip()
@@ -161,6 +161,10 @@ def main() -> int:
                 "auth": {
                     "client_id": os.getenv("SLACK_MCP_CLIENT_ID", "3660753192626.8903469228982")
                 },
+            },
+            "Notion": {
+                "type": "http",
+                "url": "https://mcp.notion.com/mcp",
             },
         },
     )
