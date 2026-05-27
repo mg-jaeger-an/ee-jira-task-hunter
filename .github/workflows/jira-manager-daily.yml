@@ -28,12 +28,14 @@ jobs:
       - name: Run Cursor Cloud automation
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
-          CURSOR_REPO_URL: ${{ secrets.CURSOR_REPO_URL }}
-          # Empty/wrong secret should not override default branch (main).
-          CURSOR_REPO_REF: ${{ secrets.CURSOR_REPO_REF != '' && secrets.CURSOR_REPO_REF || 'main' }}
+          # Always use this Actions repo (avoids wrong/missing CURSOR_REPO_* secrets).
+          CURSOR_REPO_URL: https://github.com/${{ github.repository }}
+          CURSOR_REPO_REF: ${{ github.ref_name }}
           CURSOR_MODEL_ID: composer-2.5
           SLACK_MCP_CLIENT_ID: ${{ secrets.SLACK_MCP_CLIENT_ID }}
         run: |
+          echo "CURSOR_REPO_URL=https://github.com/${GITHUB_REPOSITORY}"
+          echo "CURSOR_REPO_REF=${GITHUB_REF_NAME}"
           python "jira manager/cursor_cloud_run.py"
 
       - name: Upload markdown run log

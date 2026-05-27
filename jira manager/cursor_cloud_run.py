@@ -154,6 +154,8 @@ def main() -> int:
         return 1
 
     prompt = build_prompt(skill_text)
+    print(f"cursor_repo_url={repo_url}")
+    print(f"cursor_starting_ref={starting_ref}")
     options = AgentOptions(
         api_key=api_key,
         model=model_id,
