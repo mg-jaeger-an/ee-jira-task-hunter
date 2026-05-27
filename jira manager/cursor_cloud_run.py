@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
-from cursor_sdk import Agent, AgentOptions, CloudAgentOptions, CloudRepository, CursorAgentError
+from cursor_sdk import Agent, AgentOptions, CloudAgentOptions, CursorAgentError
 
 
 def require_env(name: str) -> str:
@@ -16,18 +16,6 @@ def require_env(name: str) -> str:
     if not value:
         raise RuntimeError(f"Missing required env var: {name}")
     return value
-
-
-def resolve_starting_ref() -> str:
-    """Branch name only (e.g. main). Users sometimes paste a repo URL by mistake."""
-    raw = os.getenv("CURSOR_REPO_REF", "main").strip()
-    if not raw:
-        return "main"
-    if raw.startswith("http://") or raw.startswith("https://") or "github.com" in raw:
-        return "main"
-    if "/" in raw:
-        return "main"
-    return raw
 
 
 def load_skill_text(repo_root: Path) -> str:
@@ -122,8 +110,6 @@ def main() -> int:
 
     try:
         api_key = require_env("CURSOR_API_KEY")
-        repo_url = require_env("CURSOR_REPO_URL")
-        starting_ref = resolve_starting_ref()
         model_id = os.getenv("CURSOR_MODEL_ID", "composer-2.5")
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
@@ -154,13 +140,13 @@ def main() -> int:
         return 1
 
     prompt = build_prompt(skill_text)
-    print(f"cursor_repo_url={repo_url}")
-    print(f"cursor_starting_ref={starting_ref}")
+    # Skill text is embedded in the prompt; no GitHub repo clone needed.
+    # Omitting repos avoids Cursor GitHub App branch verification in CI.
+    print("cloud_mode=no_repo")
     options = AgentOptions(
         api_key=api_key,
         model=model_id,
         cloud=CloudAgentOptions(
-            repos=[CloudRepository(url=repo_url, starting_ref=starting_ref)],
             skip_reviewer_request=True,
             auto_create_pr=False,
         ),

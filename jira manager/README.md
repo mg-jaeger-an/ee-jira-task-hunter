@@ -17,23 +17,15 @@ MEP Epic 기준 Slack 채널을 스캔해 한국어 Task를 자동 생성하고 
 
 ## GitHub Secrets
 
-필수 시크릿은 **`CURSOR_API_KEY` 하나**입니다.  
-`CURSOR_REPO_URL` / `CURSOR_REPO_REF`는 Actions가 자동으로 이 저장소(`github.repository`, `github.ref_name`)로 설정합니다.
+필수 시크릿은 **`CURSOR_API_KEY` 하나**입니다.
 
 1. `CURSOR_API_KEY` (필수) — [Integrations → API Keys](https://cursor.com/dashboard/integrations)
 2. `SLACK_MCP_CLIENT_ID` (선택) — 기본값 `3660753192626.8903469228982`
 
-### Cursor ↔ GitHub 연동 (필수)
+Cloud Agent는 **GitHub repo clone 없이** 실행합니다 (스킬 본문을 프롬프트에 주입).  
+따서 `CURSOR_REPO_URL` / Cursor GitHub repo 연동은 **필요 없습니다**.
 
-Cloud Agent가 repo/branch를 검증하려면 Cursor에 GitHub 접근 권한이 있어야 합니다.
-
-1. [cursor.com/dashboard/integrations](https://cursor.com/dashboard/integrations) → **GitHub** 연결/재인증
-2. **`mg-jaeger-an/ee-jira-task-hunter`** 저장소 접근 허용 (All repositories 또는 해당 repo 선택)
-3. IDE에서 이 repo로 Cloud Agent를 한 번 띄워 볼 수 있으면 연동 OK
-
-아래 에러가 나오면 대부분 이 단계 문제입니다:
-
-`Failed to verify existence of branch 'main' in repository mg-jaeger-an/ee-jira-task-hunter`
+MCP(Atlassian Hyperconnect, Slack) 인증은 Cursor 계정에 연결된 상태여야 합니다.
 
 ## 주의사항
 
