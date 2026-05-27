@@ -24,7 +24,7 @@ MEP Epic 기준 Slack 채널을 스캔해 한국어 Task를 자동 생성하고 
 2. `CURSOR_REPO_URL`  
    예: `https://github.com/<org>/<repo>`
 3. `CURSOR_REPO_REF` (선택)  
-   기본값 `main`
+   **브랜치 이름만** (예: `main`). 저장소 URL을 넣지 마세요. 비우거나 삭제하면 `main` 사용.
 4. `SLACK_MCP_CLIENT_ID` (선택)  
    기본값 `3660753192626.8903469228982`
 
@@ -33,6 +33,7 @@ MEP Epic 기준 Slack 채널을 스캔해 한국어 Task를 자동 생성하고 
 - Cloud 에이전트는 매 실행마다 새로운 VM에서 동작합니다.
 - MCP 인증 상태가 필요합니다. 특히 Hyperconnect Atlassian/Slack MCP가 조직 정책상 차단되면 실행이 실패할 수 있습니다.
 - Task 생성 본문/제목은 스킬 규칙에 따라 한국어로 작성됩니다.
+- 실행 시 **스레드 우선 스캔 → 인벤토리 표 → Jira 생성** 순서를 따르며, 로그에 미생성 permalink·사유가 포함됩니다.
 
 ## 테스트
 

@@ -18,6 +18,18 @@ def require_env(name: str) -> str:
     return value
 
 
+def resolve_starting_ref() -> str:
+    """Branch name only (e.g. main). Users sometimes paste a repo URL by mistake."""
+    raw = os.getenv("CURSOR_REPO_REF", "main").strip()
+    if not raw:
+        return "main"
+    if raw.startswith("http://") or raw.startswith("https://") or "github.com" in raw:
+        return "main"
+    if "/" in raw:
+        return "main"
+    return raw
+
+
 def load_skill_text(repo_root: Path) -> str:
     skill_md = repo_root / ".cursor" / "skills" / "jira-manager" / "SKILL.md"
     ref_md = repo_root / ".cursor" / "skills" / "jira-manager" / "reference.md"
@@ -40,15 +52,17 @@ def build_prompt(skill_text: str) -> str:
 너는 Jira 자동화 실행 에이전트다.
 아래 스킬 지시를 그대로 따라 지금 즉시 작업을 수행해라.
 
-중요:
+중요 (스킬 「추출 파이프라인」준수):
 1) 대상은 hyperconnect.atlassian.net 의 MEP 프로젝트.
-2) Epic별 Slack 채널을 스캔하고, 후속 실행이 확실한 항목만 Task를 생성해 parent로 Epic에 연결.
-3) 새로 만드는 Jira Task의 summary/description은 한국어.
-4) 단순 질문(정보 확인/의견 질문/브레인스토밍)은 Task로 만들지 않는다.
-5) Epic 내 중복 내용의 Task가 이미 있으면 만들지 않는다.
-6) 새 Task는 Backlog가 아닌 칸반 보드 컬럼(To Do) 상태가 되도록 처리한다.
-7) 결과로 생성한 이슈 키와 링크를 간단히 보고.
-8) 사용자 확인 없이 실행한다.
+2) Epic별 Slack 채널 스캔 시 reply 있는 부모 메시지마다 slack_read_thread를 **무조건** 호출한다.
+3) Task 후보는 스레드 단위(부모+reply)로 추출한다. male/female, launch/infra, 실험 ops/정책 등 **평행 트랙은 별도 Task 후보**로 분리하고 합치지 않는다.
+4) Jira 생성 전 Epic·채널별 **인벤토리 표**를 먼저 작성한다(스레드 permalink, 트랙 태그, 생성 Y/N, 스킵 사유). 표 없이 createJiraIssue 호출 금지.
+5) 커버리지 체크리스트(please/help, find a market, reserve, MDE, female/male 등)로 표 누락을 보완한다.
+6) 후속 실행이 확실한 항목만 생성=Y로 두고, 단순 질문은 생성하지 않는다.
+7) 중복은 **같은 트랙·같은 행동**일 때만; 다른 트랙은 중복 아님. summary에 [트랙 태그] 접두 필수.
+8) 새 Task summary/description은 한국어. 생성 후 Backlog면 To Do로 전이.
+9) 최종 보고에 반드시 포함: 스캔 통계(부모 수, thread-read 수), 인벤토리 표 전체, 생성 목록, **미생성 목록**(permalink+사유).
+10) 사용자 확인 없이 실행한다.
 
 {skill_text}
 """.strip()
@@ -109,7 +123,7 @@ def main() -> int:
     try:
         api_key = require_env("CURSOR_API_KEY")
         repo_url = require_env("CURSOR_REPO_URL")
-        starting_ref = os.getenv("CURSOR_REPO_REF", "main")
+        starting_ref = resolve_starting_ref()
         model_id = os.getenv("CURSOR_MODEL_ID", "composer-2.5")
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)

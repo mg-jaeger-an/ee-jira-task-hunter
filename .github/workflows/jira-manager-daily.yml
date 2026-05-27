@@ -29,7 +29,8 @@ jobs:
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           CURSOR_REPO_URL: ${{ secrets.CURSOR_REPO_URL }}
-          CURSOR_REPO_REF: ${{ secrets.CURSOR_REPO_REF }}
+          # Empty/wrong secret should not override default branch (main).
+          CURSOR_REPO_REF: ${{ secrets.CURSOR_REPO_REF != '' && secrets.CURSOR_REPO_REF || 'main' }}
           CURSOR_MODEL_ID: composer-2.5
           SLACK_MCP_CLIENT_ID: ${{ secrets.SLACK_MCP_CLIENT_ID }}
         run: |
